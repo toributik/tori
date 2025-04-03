@@ -71,7 +71,7 @@
                 
                 <!-- Product Details -->
                 <p class="text-dark mt-3">
-                    <span id="pp-299" class="text-white"></span><br><br>
+                    <span id="p-prize" class="p-p text-white"></span><br><br>
                     <span id="p-description" class="description bg-light p-1 rounded"></span><br>
                     <span id="modalProductId" class="product-id fw-bold"></span>
                 </p>
@@ -104,6 +104,24 @@
     </script>
 
 <script>
+//    function openImageModal(imageElement) {
+//     let card = imageElement.closest('.card'); // Find the card
+//     let imgSrc = imageElement.getAttribute("src"); // Get clicked image source 
+//     let productId = card.querySelector(".product-id").textContent; // Get product ID
+    
+//     // Check if description exists, if not, set a default message
+//     let descriptionElement = card.querySelector(".description");
+//     let description = descriptionElement ? descriptionElement.textContent : "No description available";
+
+//     document.getElementById("modalImg").setAttribute("src", imgSrc); // Set modal image
+//     document.getElementById("modalProductId").textContent = productId; // Set modal product ID
+//     document.getElementById("p-description").textContent = description; // Set description
+
+//     // Show the modal
+//     let modal = new bootstrap.Modal(document.getElementById('imageModal'));
+//     modal.show();
+// }
+
    function openImageModal(imageElement) {
     let card = imageElement.closest('.card'); // Find the card
     let imgSrc = imageElement.getAttribute("src"); // Get clicked image source 
@@ -113,16 +131,18 @@
     let descriptionElement = card.querySelector(".description");
     let description = descriptionElement ? descriptionElement.textContent : "No description available";
 
+    let prizeElement = card.querySelector(".p-p");
+    let prize = prizeElement ? prizeElement.textContent : "No prize available";
+
     document.getElementById("modalImg").setAttribute("src", imgSrc); // Set modal image
     document.getElementById("modalProductId").textContent = productId; // Set modal product ID
     document.getElementById("p-description").textContent = description; // Set description
+    document.getElementById("p-prize").textContent = prize; // Set description
 
     // Show the modal
     let modal = new bootstrap.Modal(document.getElementById('imageModal'));
     modal.show();
 }
-
-
 
 //     function shareImage(buttonElement) {
 //     // Find the closest image within the same card
