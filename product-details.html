@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product Details</title>
+   <link rel="icon" type="image/png" href="logo/logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="js/script.js"></script>
+  <style>
+    .product-image-container {
+      height: 100%; /* Reduced from 100% to fixed height */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .product-image {
+      max-height: 500px; /* Reduced from 500px */
+      width: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+    .product-image:hover {
+      transform: scale(1.02);
+    }
+    .details-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .discount-badge {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+      color: white;
+      padding: 4px 6px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 3px;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+    .savings-badge {
+      background: linear-gradient(135deg, #28a746, #20c996);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .original-price {
+      text-decoration: line-through;
+      color: #6c757d;
+      font-size: 1.3rem;
+    }
+    .discounted-price {
+      color: #dc3545;
+      font-weight: bold;
+      font-size: 2rem;
+      margin: 5px 0;
+    }
+    .price-container {
+      margin: 5px 0; /* Reduced from 20px */
+      padding: 8px; /* Reduced from 20px */
+      background: white;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+    }
+    .loader-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 300px; /* Reduced from 400px */
+    }
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #002238;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .btn-order {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: none;
+      font-weight: 600;
+      padding: 12px 25px; /* Reduced from 15px 30px */
+      font-size: 1.1rem; /* Reduced from 1.2rem */
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    .btn-order:hover {
+      background: linear-gradient(135deg, #218838, #1e9e7f);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    .back-btn {
+      margin-bottom: 20px; /* Reduced from 30px */
+      border-radius: 8px;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      transform: translateX(-5px);
+    }
+    .specs-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .specs-table td {
+      padding: 12px 18px; /* Reduced from 15px 20px */
+      border-bottom: 1px solid #f1f3f4;
+    }
+    .specs-table tr:last-child td {
+      border-bottom: none;
+    }
+    .specs-table td:first-child {
+      font-weight: 600;
+      width: 35%;
+      background: #f8f9fa;
+      color: #495057;
+    }
+    .specs-table td:last-child {
+      color: #6c757d;
+      font-weight: 500;
+    }
+    .description-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px; /* Reduced from 25px */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-left: 4px solid #28a745;
+    }
+    .product-title {
+      font-size: 1.8rem; /* Reduced from 2.2rem */
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 15px; /* Reduced from 20px */
+      line-height: 1.2;
+    }
+    .section-title {
+      font-size: 1.2rem; /* Reduced from 1.3rem */
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 12px; /* Reduced from 15px */
+      padding-bottom: 8px; /* Reduced from 10px */
+      border-bottom: 2px solid #e9ecef;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-body {
+      padding: 25px; /* Reduced from 30px */
+    }
+    .logo-card-img{
+  position: absolute;
+  /* transform: rotate(-45deg); */
+  bottom: 40px;
+  right: 15px;
+  z-index: 20;
+  width: 50px;
+}
+
+    @media (max-width: 576px) {
+      body {
+        font-size: 12px;
+      }
+      .btn-warning{
+        font-size: 12px;
+      }
+
+      .product-title {
+        font-size: 1.2rem;
+      }
+
+      .section-title {
+        font-size: 1rem;
+      }
+
+      .discount-badge,
+      .savings-badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+      }
+
+      .original-price {
+        font-size: 1rem;
+      }
+
+      .discounted-price {
+        font-size: 1.4rem;
+      }
+
+      .price-container {
+        margin: 10px 0;
+        padding: 5px;
+      }
+
+      .card-body {
+        padding: 15px;
+      }
+
+      .btn-order {
+        padding: 10px 20px;
+        font-size: 1rem;
+      }
+
+      .back-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+      }
+
+      .specs-table td {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      .description-box {
+        padding: 15px;
+        font-size: 0.9rem;
+      }
+
+      .loader-container {
+        height: 200px; /* Reduced from 300px */
+      }
+
+      .product-image {
+        max-height: 250px; /* Reduced from 300px */
+      }
+      
+      .product-image-container {
+        height: 280px; /* Reduced for mobile */
+      }
+    }
+
+    /* Additional media query for medium screens */
+    @media (max-width: 992px) {
+      .product-image-container {
+        height: 320px;
+      }
+      
+      .product-image {
+        max-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-light">
+   <div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+  <div class="container py-1">
+    <!-- Back Button -->
+    <a href="index.html" class="btn btn-outline-secondary back-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-left me-2" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+      </svg>
+      Back to Products
+    </a>
+
+
+    
+    <!-- Loading State -->
+    <div id="loadingContainer" class="loader-container">
+      <div class="loader"></div>
+    </div>
+    
+    <!-- Product Details -->
+    <div id="productDetails" class="row g-2" style="display: none;">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="product-image-container">
+            <img class="logo-card-img" src="logo/logo.png">
+          <img id="productImage" src="" class="product-image" alt="Product Image" style="cursor:pointer">
+        </div>
+
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-body details-container">
+            <span>
+            <span id="productName" class="product-title"></span>
+            <span id="discountBadge"></span>
+            </span>
+            
+            <span class="price-container">
+              <span id="priceContainer"></span>
+              <span id="savingsContainer"></span>
+            </span>
+            
+            <div class="mb-1">
+              <h5 class="section-title">Specifications</h5>
+              <table class="specs-table">
+                <tr>
+                  <td>Type</td>
+                  <td id="productType">N/A</td>
+                </tr>
+                <tr>
+                  <td>Size</td>
+                  <td id="productSize">N/A</td>
+                </tr>
+                <tr>
+                  <td>Return</td>
+                  <td id="return">N/A</td>
+                </tr>
+                <tr class="d-none">
+                  <td>Gender</td>
+                  <td id="productGender">N/A</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="mb-1 flex-grow-1">
+              <h5 class="section-title">Description</h5>
+              <div class="description-box">
+                <p id="productDescription" class="text-muted mb-0">No description available.</p>
+              </div>
+            </div>
+            
+            <div class="mt-auto pt-2">
+              <a id="orderBtn" href="#" class="btn btn-order w-100 btn-lg">Order Now</a>
+              
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+<div class="text-end mt-2">
+  <button id="feedbackBtn" class="btn btn-warning d-none">
+    Give Feedback
+  </button>
+</div>
+
+        <!-- Feedback Section -->
+<div id="feedbackSection" class="mt-1" style="display:none;">
+  <h5 class="section-title">Customer Feedback</h5>
+  
+  <div id="feedbackContainer" class="bg-white p-3 rounded shadow-sm">
+    <div class="text-center text-muted">Loading feedback...</div>
+  </div>
+</div>
+
+    
+    <!-- Error State -->
+    <div id="errorContainer" class="text-center py-5" style="display: none;">
+      <div class="py-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#dc3545" class="bi bi-exclamation-triangle mb-3" viewBox="0 0 16 16">
+          <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+          <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+        </svg>
+        <h4 class="text-danger">Product Not Found</h4>
+        <p id="errorMessage" class="text-muted"></p>
+        <a href="index.html" class="btn btn-primary mt-3">Back to Products</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Number Modal -->
+<div class="modal fade" id="mobileModal" tabindex="-1" aria-labelledby="mobileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mobileModalLabel">Enter Your Mobile Number</h5>
+      </div>
+      <div class="modal-body">
+        <input type="tel" id="mobileInputModal" class="form-control" placeholder="Enter your mobile number" maxlength="10">
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="saveMobileBtn" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-body p-0 text-center">
+        <img id="modalImage" src="" class="img-fluid rounded" alt="Zoomed Image">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+// DOM Elements
+const productDetails = document.getElementById("productDetails");
+const loadingContainer = document.getElementById("loadingContainer");
+const errorContainer = document.getElementById("errorContainer");
+const errorMessage = document.getElementById("errorMessage");
+
+// Product elements
+const productImage = document.getElementById("productImage");
+const productName = document.getElementById("productName");
+const discountBadge = document.getElementById("discountBadge");
+const priceContainer = document.getElementById("priceContainer");
+const savingsContainer = document.getElementById("savingsContainer");
+const productType = document.getElementById("productType");
+const productSize = document.getElementById("productSize");
+const returnAvi = document.getElementById("return");
+const productGender = document.getElementById("productGender");
+const productDescription = document.getElementById("productDescription");
+const orderBtn = document.getElementById("orderBtn");
+
+// Get productId from URL
+const urlParams = new URLSearchParams(window.location.search);
+const productId = urlParams.get('productId');
+
+// -------------------------------
+// Helper Functions
+// -------------------------------
+function calculateDiscountedPrice(price, discount) {
+  return price - (price * discount / 100);
+}
+
+function formatPrice(price) {
+  return '₹' + parseFloat(price).toLocaleString('en-IN');
+}
+
+function createPriceDisplay(product) {
+  const price = parseFloat(product['Product Price']) || 0;
+  const discount = parseFloat(product['Product Discount']) || 0;
+
+  if (discount > 0) {
+    const discountedPrice = calculateDiscountedPrice(price, discount);
+    const savingsAmount = price - discountedPrice;
+
+    return {
+      html: `
+        <div class="original-price text-muted text-decoration-line-through">${formatPrice(price)}</div>
+        <div class="discounted-price fw-bold text-success">${formatPrice(discountedPrice)}</div>
+      `,
+      savings: savingsAmount
+    };
+  } else {
+    return {
+      html: `<div class="discounted-price fw-bold text-success">${formatPrice(price)}</div>`,
+      savings: 0
+    };
+  }
+}
+
+// -------------------------------
+// Load Product Details
+// -------------------------------
+async function loadProductDetails() {
+  if (!productId) {
+    showError("Product ID not specified");
+    return;
+  }
+
+  try {
+    // Show loading
+    loadingContainer.style.display = 'flex';
+    productDetails.style.display = 'none';
+    errorContainer.style.display = 'none';
+
+    const res = await fetch(`${scriptURL}?action=getProducts`);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+    const products = await res.json();
+    const product = products.find(p => String(p["Product ID"]) === String(productId));
+
+    if (!product) {
+      showError("Product not found");
+      return;
+    }
+
+    // Hide loader, show content
+    loadingContainer.style.display = 'none';
+    productDetails.style.display = 'flex';
+
+    // Load feedback for this product
+getFeedback(productId);
+
+
+    // Populate product details
+    productImage.src = product['Product Image'] || 'https://via.placeholder.com/400x300?text=No+Image';
+    productImage.alt = product['Product Name'];
+    productImage.onerror = function () {
+      this.src = 'https://via.placeholder.com/400x300?text=No+Image';
+    };
+
+    productName.textContent = product['Product Name'] || 'Unnamed Product';
+    productType.textContent = product['Product Type'] || 'N/A';
+    returnAvi.textContent = product['Return'] 
+    ? `Within ${product['Return']} Days` 
+    : 'Not Available';
+
+    // const rawSize = product['Product Size'] || 'N/A';
+    // if (rawSize !== 'N/A') {
+    //   const sizeParts = rawSize.split('-').map(s => s.trim()).filter(Boolean);
+    //   productSize.innerHTML = sizeParts
+    //     .map(size => `<span class="badge bg-info text-dark me-1 mb-1">${size}</span>`)
+    //     .join(' ');
+    // } else {
+    //   productSize.textContent = 'N/A';
+    // }
+
+    const rawSize = product['Product Size'] || 'N/A';
+if (rawSize !== 'N/A') {
+  const sizeParts = rawSize.split('-').map(s => s.trim()).filter(Boolean);
+  const cleanSizes = sizeParts.map(size => size.slice(0, -3).trim()); // remove last 3 characters
+
+  productSize.innerHTML = cleanSizes
+    .map(size => `<span class="badge bg-info text-dark me-1 mb-1">${size}</span>`)
+    .join(' ');
+} else {
+  productSize.textContent = 'N/A';
+}
+
+
+    productGender.textContent = product['For Gender'] || 'N/A';
+    productDescription.textContent = product['Product Description'] || 'No description available';
+
+    // Check availability
+    const isAvailable = (product["Product Display"] || "").toLowerCase() === "yes";
+
+    // Handle discount badge and pricing
+    const discount = parseFloat(product['Product Discount']) || 0;
+    discountBadge.innerHTML = discount > 0 ? `<div class="discount-badge">-${discount}% OFF</div>` : '';
+
+    const priceDisplay = createPriceDisplay(product);
+    priceContainer.innerHTML = priceDisplay.html;
+
+    // Show savings if applicable
+    if (priceDisplay.savings > 0) {
+      savingsContainer.innerHTML = `<div class="savings-badge">You save ${formatPrice(priceDisplay.savings)}</div>`;
+    } else {
+      savingsContainer.innerHTML = '';
+    }
+
+    // Set order button logic
+    if (isAvailable) {
+      orderBtn.textContent = "Order Now";
+      orderBtn.href = `order.html?productId=${product['Product ID']}`;
+      orderBtn.classList.remove("btn-secondary");
+      orderBtn.classList.add("btn-success");
+      orderBtn.disabled = false;
+    } else {
+      orderBtn.textContent = "Currently Not Available";
+      orderBtn.removeAttribute("href");
+      orderBtn.classList.remove("btn-order");
+      orderBtn.classList.add("btn-secondary");
+      orderBtn.disabled = true;
+    }
+
+  } catch (err) {
+    showError(err.message);
+    console.error('Error loading product details:', err);
+  }
+}
+
+
+
+// -------------------------------
+// Show Error
+// -------------------------------
+function showError(message) {
+  loadingContainer.style.display = 'none';
+  productDetails.style.display = 'none';
+  errorContainer.style.display = 'block';
+  errorMessage.textContent = message;
+}
+
+// Initialize
+document.addEventListener("DOMContentLoaded", loadProductDetails);
+
+// -------------------------------
+// GET FEEDBACK for this Product
+// -------------------------------
+async function getFeedback(productId) {
+  const feedbackSection = document.getElementById("feedbackSection");
+  const feedbackContainer = document.getElementById("feedbackContainer");
+
+  try {
+    const res = await fetch(`${scriptURL}?action=getFeedback`);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+    const response = await res.json();
+    //console.log("Feedback API response:", response);
+
+    // Extract feedback array from the response
+    let feedbacks = [];
+    if (response.status === "success" && Array.isArray(response.feedback)) {
+      feedbacks = response.feedback;
+    } else {
+      throw new Error("Unexpected feedback data format");
+    }
+
+    // Filter feedback for the current product AND display = "Yes"
+    const filteredFeedback = feedbacks.filter(f => 
+      String(f["Product ID"]) === String(productId) && 
+      (f["Feedback Display"] || "").toLowerCase() === "yes"
+    );
+
+    //console.log("Filtered feedback:", filteredFeedback); // Debug log
+
+    // If no feedback, show message
+    if (filteredFeedback.length === 0) {
+      feedbackSection.style.display = "block";
+      feedbackContainer.innerHTML = `
+        <div class="text-center text-muted py-3">
+          No feedback available for this product yet.
+        </div>`;
+      return;
+    }
+
+    // Show feedback section
+    feedbackSection.style.display = "block";
+
+    // Sort by latest feedback date first
+    filteredFeedback.sort((a, b) => new Date(b["Feedback Date"]) - new Date(a["Feedback Date"]));
+
+    // Build feedback list
+    feedbackContainer.innerHTML = filteredFeedback
+      .map(f => {
+        // Format Date
+        let formattedDate = "N/A";
+        if (f["Feedback Date"]) {
+          const d = new Date(f["Feedback Date"]);
+          if (!isNaN(d)) {
+            formattedDate = d.toLocaleDateString("en-IN", { day:'2-digit', month:'short', year:'numeric' });
+          }
+        }
+
+        // Format Time
+        let formattedTime = f["Feedback Time"] || "";
+        if (formattedTime) {
+          const t = new Date(`1970-01-01T${formattedTime}`);
+          if (!isNaN(t)) {
+            formattedTime = t.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+          }
+        }
+
+        // Create star rating
+        const rating = parseInt(f["Feedback Rating"] || 0);
+        const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+
+        return `
+          <div class="border-bottom py-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person me-1" viewBox="0 0 16 16">
+                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                  <path d="M14 14s-1-4-6-4-6 4-6 4 1 0 6 0 6 0 6 0z"/>
+                </svg>
+                ${f["Name"] || "Anonymous"}
+              </strong>
+              <span class="text-warning">${stars}</span>
+            </div>
+            <small class="text-muted">
+              ${formattedDate}
+            </small>
+            <p class="mt-2 mb-1">${f["Feedback Massage"] || "No message"}</p>
+          </div>
+        `;
+      })
+      .join("");
+
+  } catch (err) {
+    console.error("Error loading feedback:", err);
+    feedbackSection.style.display = "block";
+    feedbackContainer.innerHTML = `
+      <div class="text-center text-danger py-3">
+        Failed to load feedback. Please try again later.
+      </div>`;
+  }
+}
+</script>
+
+  <script>
+       // Check localStorage for mobile number on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileKey = 'userMobile';
+      const storedMobile = localStorage.getItem(mobileKey);
+      const mobileModal = new bootstrap.Modal(document.getElementById('mobileModal'));
+      const mobileInputModal = document.getElementById('mobileInputModal');
+      const saveMobileBtn = document.getElementById('saveMobileBtn');
+
+      if (storedMobile) {
+        // Mobile exists: fetch orders automatically
+        // fetchOrdersByMobile(storedMobile);
+      } else {
+        // Show modal if mobile not stored
+        mobileModal.show();
+      }
+
+      // Save mobile from modal
+      saveMobileBtn.addEventListener('click', () => {
+        const mobile = mobileInputModal.value.trim();
+        if (!mobile || !/^\d{10}$/.test(mobile)) {
+          alert('Please enter a valid 10-digit mobile number.');
+          return;
+        }
+        localStorage.setItem(mobileKey, mobile);
+        mobileModal.hide();
+        fetchOrdersByMobile(mobile);
+      });
+    });
+  </script>
+  <script>
+// -------------------------------
+// Check Feedback Eligibility
+// -------------------------------
+function checkFeedbackEligibility(productId) {
+  const feedbackBtn = document.getElementById('feedbackBtn');
+  const mobileKey = 'userMobile';
+  const storedMobile = localStorage.getItem(mobileKey);
+
+  if (!storedMobile) {
+    feedbackBtn.classList.add('d-none');
+    return;
+  }
+
+  fetch(`${scriptURL}?action=getOrdersByMobile&mobile=${storedMobile}`)
+    .then(res => res.json())
+    .then(orders => {
+      if (!orders || !Array.isArray(orders)) {
+        feedbackBtn.classList.add('d-none');
+        return;
+      }
+
+      // Check if user has ordered this product
+      const hasOrdered = orders.some(order => Number(order['Product ID']) === Number(productId));
+
+      if (hasOrdered) {
+        feedbackBtn.classList.remove('d-none');
+        feedbackBtn.onclick = () => {
+          const name = encodeURIComponent(productName.textContent || 'Customer');
+          window.location.href = `feedback.html?orderId=${Date.now()}&productId=${productId}&name=${name}`;
+        };
+      } else {
+        feedbackBtn.classList.add('d-none');
+      }
+    })
+    .catch(err => {
+      console.error('Error checking feedback eligibility:', err);
+      feedbackBtn.classList.add('d-none');
+    });
+}
+
+// Call after product loads
+document.addEventListener('DOMContentLoaded', () => {
+  if (productId) checkFeedbackEligibility(productId);
+});
+</script>
+
+  <script>
+    // Image modal logic
+const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+const modalImage = document.getElementById('modalImage');
+
+productImage.addEventListener('click', () => {
+  modalImage.src = productImage.src; // use the same image
+  imageModal.show();
+});
+
+  </script>
+</body>
+</html>

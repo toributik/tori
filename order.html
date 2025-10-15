@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Place Order</title>
+  <link rel="icon" type="image/png" href="logo/logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="js/script.js"></script>
+  <link href="css/style.css" rel="stylesheet">
+  <style>
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+    
+    .success-modal .modal-content {
+      border-radius: 15px;
+      border: none;
+    }
+    .success-icon {
+      font-size: 4rem;
+      color: #28a745;
+    }
+    
+    /* Spinner for submit button */
+    .btn-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    /* Two-column layout for wider screens */
+    @media (min-width: 992px) {
+      .two-column-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .two-column-form .form-section {
+        margin-bottom: 0;
+      }
+    }
+    
+    /* Quantity input with buttons */
+    .quantity-control {
+      display: flex;
+      align-items: center;
+    }
+    .quantity-control button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #ced4da;
+      background-color: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .quantity-control button:hover {
+      background-color: #e9ecef;
+    }
+    .quantity-control input {
+      text-align: center;
+      border-left: none;
+      border-right: none;
+      border-radius: 0;
+    }
+    .quantity-control .btn-minus {
+      border-radius: 0.375rem 0 0 0.375rem;
+    }
+    .quantity-control .btn-plus {
+      border-radius: 0 0.375rem 0.375rem 0;
+    }
+
+    #formLoader {
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    /* Error state styling */
+    .error-state {
+      text-align: center;
+      padding: 2rem;
+    }
+    .error-state .bi {
+      font-size: 3rem;
+      color: #dc3545;
+      margin-bottom: 1rem;
+    }
+    
+    /* Retry button */
+    .btn-retry {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+  </div>
+  
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg fixed-top bg-light shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-arrow-left-circle"></i> 🛍️ Place Your Order
+      </a>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <!-- Loader -->
+    <div id="formLoader" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading your order form...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state d-none">
+      <i class="bi bi-exclamation-triangle"></i>
+      <h3>Something went wrong</h3>
+      <p>We couldn't load the order form. Please check your connection and try again.</p>
+      <button id="retryBtn" class="btn btn-primary btn-retry">Try Again</button>
+    </div>
+
+    <form id="orderForm" class="glass p-4 shadow-sm mt-5 d-none">
+      <div class="two-column-form">
+        <!-- Left Column -->
+        <div class="form-section">
+          <!-- Product ID -->
+          <div class="mb-3 d-none">
+            <label class="form-label">Product ID</label>
+            <input type="text" class="form-control" id="productId" readonly>
+          </div>
+
+          <!-- Mobile Number Input -->
+          <div class="mb-3" id="mobileContainer">
+            <label class="form-label">Enter Mobile No. Click Search Icon</label>
+            <div class="search-container position-relative">
+              <input type="tel" class="form-control pe-5 mb-2" id="mobile" required placeholder="Enter your mobile number">
+              <button type="button" class="btn btn-primary position-absolute top-50 end-0 translate-middle-y me-2" id="searchBtn" style="padding-left: 30px; padding-right: 30px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+              </button>
+            </div>
+            <div id="searchLoader" class="mt-2 d-none">
+              <span class="loader"></span>
+              <span class="ms-2">Searching for previous orders...</span>
+            </div>
+          </div>
+
+          <!-- Product Size -->
+          <div class="mb-3 d-none" id="sizeContainer">
+            <label class="form-label">Select Size</label>
+            <select class="form-select" id="sizeSelect" required></select>
+          </div>
+
+          <!-- Quantity with + - buttons -->
+          <div class="mb-3 d-none" id="qtyContainer">
+            <label class="form-label">Quantity</label>
+            <div class="quantity-control">
+              <button type="button" class="btn-minus" id="decreaseQty">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                  <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+                </svg>
+              </button>
+              <input type="number" class="form-control" id="quantity" value="1" min="1" required>
+              <button type="button" class="btn-plus" id="increaseQty">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Price Breakdown Box -->
+          <div class="mb-3 d-none" id="priceBox">
+            <div class="card p-3 shadow-sm">
+              <div class="d-flex justify-content-between">
+                <span>Product Price:</span>
+                <span id="priceValue">0</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Discount:</span>
+                <span id="discountValue">0%</span>
+              </div>
+              <div class="d-flex justify-content-between fw-bold">
+                <span>Price after Discount:</span>
+                <span id="discountedPriceValue">0</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Delivery Charges:</span>
+                <span id="deliveryChargeValue">0</span>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between fw-bold">
+                <span>Total Payable:</span>
+                <span id="totalAmount">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="form-section">
+          <!-- Hidden fields -->
+          <div id="extraFields" class="d-none">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" id="name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">City</label>
+              <select class="form-select" id="city" required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Full Address</label>
+              <textarea class="form-control" id="address" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Pin Code</label>
+              <input type="text" class="form-control" id="pin" required>
+            </div>
+            <div class="mb-3 d-none">
+              <label class="form-label">Payment Method</label>
+              <input type="text" class="form-control" id="payment" value="Cash on Delivery" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn btn-primary w-100 d-none mt-3">
+        Cash on Delivery
+      </button>
+    </form>
+
+    <!-- Toast Container (Top Right) -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+      <div id="messageToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="toastMessage">
+            <!-- Message will appear here -->
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade success-modal" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center p-5">
+            <div class="success-icon mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+              </svg>
+            </div>
+            <h3 class="mb-3">Order Placed Successfully!</h3>
+            <p class="mb-4">Thank you for your order. Our team will contact you shortly on your mobile number to confirm the details.</p>
+            <a type="button" href="index.html" class="btn btn-primary">Continue Shopping</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Number Modal -->
+  <div class="modal fade" id="mobileModal" tabindex="-1" aria-labelledby="mobileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="mobileModalLabel">Enter Your Mobile Number</h5>
+        </div>
+        <div class="modal-body">
+          <input type="tel" id="mobileInputModal" class="form-control" placeholder="Enter your mobile number" maxlength="10">
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="saveMobileBtn" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+ 
+
+    // State management
+    const appState = {
+      productId: null,
+      productPrice: 0,
+      productDiscount: 0,
+      deliveryCharge: 0,
+      retryCount: 0,
+      isInitialized: false
+    };
+
+    // DOM elements
+    const elements = {
+      formLoader: document.getElementById('formLoader'),
+      errorState: document.getElementById('errorState'),
+      retryBtn: document.getElementById('retryBtn'),
+      orderForm: document.getElementById('orderForm'),
+      mobileInput: document.getElementById("mobile"),
+      extraFields: document.getElementById("extraFields"),
+      submitBtn: document.getElementById("submitBtn"),
+      searchLoader: document.getElementById("searchLoader"),
+      sizeContainer: document.getElementById("sizeContainer"),
+      sizeSelect: document.getElementById("sizeSelect"),
+      qtyContainer: document.getElementById("qtyContainer"),
+      quantityInput: document.getElementById("quantity"),
+      citySelect: document.getElementById("city"),
+      priceBox: document.getElementById("priceBox"),
+      successModal: new bootstrap.Modal(document.getElementById('successModal')),
+      decreaseQtyBtn: document.getElementById("decreaseQty"),
+      increaseQtyBtn: document.getElementById("increaseQty"),
+      toastEl: document.getElementById('messageToast'),
+      toastBody: document.getElementById('toastMessage'),
+      mobileModal: new bootstrap.Modal(document.getElementById('mobileModal')),
+      mobileInputModal: document.getElementById('mobileInputModal'),
+      saveMobileBtn: document.getElementById('saveMobileBtn')
+    };
+
+    // Get productId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    appState.productId = urlParams.get('productId');
+    if (appState.productId) document.getElementById('productId').value = appState.productId;
+
+    // Utility functions
+    function showMessage(message, type = 'info') {
+      const colorMap = { 
+        success: 'success', 
+        error: 'danger', 
+        warning: 'warning', 
+        info: 'primary' 
+      };
+      
+      elements.toastBody.textContent = message;
+      elements.toastEl.className = `toast align-items-center text-white bg-${colorMap[type] || 'primary'} border-0`;
+      new bootstrap.Toast(elements.toastEl, { delay: 4000 }).show();
+    }
+
+    function fetchWithTimeout(url, options = {}, timeout = CONFIG.timeout) {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), timeout)
+        )
+      ]);
+    }
+
+    function showErrorState() {
+      elements.formLoader.classList.add('d-none');
+      elements.orderForm.classList.add('d-none');
+      elements.errorState.classList.remove('d-none');
+    }
+
+    function hideErrorState() {
+      elements.errorState.classList.add('d-none');
+    }
+
+    function showForm() {
+      elements.formLoader.classList.add('d-none');
+      elements.orderForm.classList.remove('d-none');
+    }
+
+    // Data fetching with retry logic
+    async function fetchWithRetry(url, options = {}, maxRetries = CONFIG.maxRetries) {
+      for (let i = 0; i <= maxRetries; i++) {
+        try {
+          const response = await fetchWithTimeout(url, options);
+          if (response.ok) return response;
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        } catch (error) {
+          if (i === maxRetries) throw error;
+          console.warn(`Attempt ${i + 1} failed, retrying...`, error);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+        }
+      }
+    }
+
+    // Load product size
+    async function loadProductSize() {
+      if (!appState.productId) return;
+      
+      try {
+        const response = await fetchWithRetry(`${CONFIG.scriptURL}?action=getProducts`);
+        const products = await response.json();
+        const product = products.find(p => String(p["Product ID"]) === String(appState.productId));
+        
+        if (product) {
+          appState.productPrice = Number(product["Product Price"]) || 0;
+          appState.productDiscount = Number(product["Product Discount"]) || 0;
+          
+          if (product["Product Size"]) {
+            const sizes = product["Product Size"].split("-").map(s => s.trim());
+            elements.sizeSelect.innerHTML = sizes.map(size => 
+              `<option value="${size}">${size}</option>`
+            ).join("");
+            elements.sizeContainer.classList.remove("d-none");
+            elements.qtyContainer.classList.remove("d-none");
+          }
+          calculateTotal();
+        } else {
+          showMessage('Product not found!', 'warning');
+        }
+      } catch (error) {
+        console.error('Error loading product details:', error);
+        throw error;
+      }
+    }
+
+    // Load cities
+    async function loadCities() {
+      try {
+        const response = await fetchWithRetry(`${CONFIG.scriptURL}?action=getSettings`);
+        const cities = await response.json();
+        
+        elements.citySelect.innerHTML = '<option value="">Select City</option>';
+        cities.forEach(city => {
+          const option = document.createElement("option");
+          option.value = city.city;
+          option.textContent = city.city;
+          option.dataset.charge = Number(city.charge) || 0;
+          elements.citySelect.appendChild(option);
+        });
+        
+        appState.deliveryCharge = Number(cities[0]?.charge) || 0;
+        calculateTotal();
+      } catch (error) {
+        console.error('Error loading cities:', error);
+        throw error;
+      }
+    }
+
+    // Calculate total
+    function calculateTotal() {
+      const qty = Number(elements.quantityInput.value) || 1;
+      const discountedPrice = appState.productPrice - (appState.productPrice * appState.productDiscount / 100);
+      const total = (discountedPrice * qty) + appState.deliveryCharge;
+
+      document.getElementById("priceValue").textContent = `₹${appState.productPrice.toFixed(2)}`;
+      document.getElementById("discountValue").textContent = `${appState.productDiscount}%`;
+      document.getElementById("discountedPriceValue").textContent = `₹${(discountedPrice * qty).toFixed(2)}`;
+      document.getElementById("deliveryChargeValue").textContent = `₹${appState.deliveryCharge.toFixed(2)}`;
+      document.getElementById("totalAmount").textContent = `₹${total.toFixed(2)}`;
+
+      elements.priceBox.classList.remove("d-none");
+      return total;
+    }
+
+    // Search user data
+    async function searchUserData() {
+      const mobile = elements.mobileInput.value.trim();
+      if (!mobile) {
+        showMessage('Please enter a mobile number.', 'warning');
+        return;
+      }
+
+      // Validate mobile number
+      if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+        showMessage('Please enter a valid 10-digit mobile number.', 'warning');
+        return;
+      }
+
+      localStorage.setItem('userMobile', mobile);
+
+      try {
+        elements.searchLoader.classList.remove("d-none");
+        const response = await fetchWithRetry(
+          `${CONFIG.scriptURL}?action=fetchPreviousOrderDetailsByMobile&mobile=${mobile}`
+        );
+        const text = await response.text();
+        
+        elements.searchLoader.classList.add("d-none");
+        elements.extraFields.classList.remove("d-none");
+        elements.submitBtn.classList.remove("d-none");
+
+        if (text === "NOT_FOUND") {
+          showMessage('No previous order found for this mobile.', 'warning');
+          document.getElementById("name").value = "";
+          document.getElementById("city").value = "";
+          document.getElementById("address").value = "";
+          document.getElementById("pin").value = "";
+          document.getElementById("payment").value = "Cash on Delivery";
+        } else {
+          const data = JSON.parse(text);
+          document.getElementById("name").value = data["Name"] || "";
+          document.getElementById("city").value = data["City"] || "";
+          document.getElementById("address").value = data["Full Address"] || "";
+          document.getElementById("pin").value = data["Pin Code"] || "";
+          document.getElementById("payment").value = data["Payment Methods"] || "Cash on Delivery";
+          showMessage('User Found! Please review your details.', 'success');
+        }
+      } catch (error) {
+        elements.searchLoader.classList.add("d-none");
+        console.error('Error fetching user data:', error);
+        showMessage('Error fetching user data. Please try again.', 'error');
+      }
+    }
+
+    // Initialize the application
+    async function initializeApp() {
+      hideErrorState();
+      
+      try {
+        // Load both product and city data in parallel
+        await Promise.all([loadCities(), loadProductSize()]);
+
+        // Check for stored mobile number
+        const storedMobile = localStorage.getItem('userMobile');
+        if (storedMobile) {
+          elements.mobileInput.value = storedMobile;
+          await searchUserData();
+        } else {
+          elements.mobileModal.show();
+        }
+
+        appState.isInitialized = true;
+        showForm();
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        showErrorState();
+        showMessage('Failed to load order form. Please try again.', 'error');
+      }
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      // Quantity controls
+      elements.decreaseQtyBtn.addEventListener("click", () => {
+        if (elements.quantityInput.value > 1) {
+          elements.quantityInput.value--;
+          calculateTotal();
+        }
+      });
+      
+      elements.increaseQtyBtn.addEventListener("click", () => {
+        elements.quantityInput.value++;
+        calculateTotal();
+      });
+      
+      elements.quantityInput.addEventListener("input", calculateTotal);
+      
+      // City change
+      elements.citySelect.addEventListener("change", () => {
+        const selectedOption = elements.citySelect.options[elements.citySelect.selectedIndex];
+        appState.deliveryCharge = Number(selectedOption.dataset.charge) || 0;
+        calculateTotal();
+      });
+      
+      // Search button
+      document.getElementById("searchBtn").addEventListener("click", searchUserData);
+      
+      // Mobile input enter key
+      elements.mobileInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          searchUserData();
+        }
+      });
+      
+      // Save mobile button
+      elements.saveMobileBtn.addEventListener('click', () => {
+        const mobile = elements.mobileInputModal.value.trim();
+        if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+          showMessage("Enter a valid 10-digit mobile number", "warning");
+          return;
+        }
+
+        localStorage.setItem('userMobile', mobile);
+        elements.mobileInput.value = mobile;
+        elements.mobileModal.hide();
+        searchUserData();
+      });
+      
+      // Retry button
+      elements.retryBtn.addEventListener('click', initializeApp);
+      
+      // Form submission
+      elements.orderForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        if (!elements.citySelect.value) {
+          showMessage('Please select a city.', 'error');
+          return;
+        }
+
+        const totalPayable = calculateTotal();
+        const params = new URLSearchParams({
+          action: "addOrder",
+          name: document.getElementById("name").value,
+          mobile: elements.mobileInput.value,
+          city: elements.citySelect.value,
+          address: document.getElementById("address").value,
+          pin: document.getElementById("pin").value,
+          payment: document.getElementById("payment").value,
+          productId: appState.productId,
+          size: elements.sizeSelect.value,
+          quantity: elements.quantityInput.value,
+          totalPayable: totalPayable
+        });
+
+        try {
+          elements.submitBtn.disabled = true;
+          elements.submitBtn.innerHTML = '<span class="btn-spinner"></span> Placing Order...';
+          
+          const response = await fetchWithRetry(`${CONFIG.scriptURL}?${params.toString()}`);
+          const result = await response.text();
+
+          if (result.toLowerCase().includes("success")) {
+            elements.orderForm.style.display = "none";
+            document.querySelector("h3").style.display = "none";
+            elements.successModal.show();
+          } else {
+            showMessage(result, 'error');
+          }
+        } catch (error) {
+          console.error('Error placing order:', error);
+          showMessage('Error placing order. Please try again.', 'error');
+        } finally {
+          elements.submitBtn.disabled = false;
+          elements.submitBtn.innerHTML = 'Cash on Delivery';
+        }
+      });
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      initializeApp();
+    });
+  </script>
+</body>
+</html>
