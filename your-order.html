@@ -218,6 +218,10 @@ const showReturnButton = order["Return"]?.toLowerCase() === "available";
     statusColor = "text-primary"; 
     cardBgColor = "rgba(0, 123, 255, 0.10)";
   } 
+  else if (statusText.toLowerCase().startsWith("refunded")) {
+    statusColor = "text-primary"; 
+    cardBgColor = "rgba(0, 123, 255, 0.10)";
+  } 
   else if (statusText.toLowerCase().startsWith("delivered")) {
     statusColor = "text-success"; 
     cardBgColor = "rgba(0, 255, 0, 0.10)";

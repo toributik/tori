@@ -245,10 +245,6 @@
               <label class="form-label">Pin Code</label>
               <input type="text" class="form-control" id="pin" required>
             </div>
-            <div class="mb-3 d-none">
-              <label class="form-label">Payment Method</label>
-              <input type="text" class="form-control" id="payment" value="Cash on Delivery" disabled>
-            </div>
           </div>
         </div>
       </div>
@@ -309,7 +305,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
- 
+    // Configuration for order.html
+    const CONFIG = {
+      scriptURL: "https://script.google.com/macros/s/AKfycbxdjJhsHzqgWhuXWIDDJGGUT-sYz7iiJ4BzDUU3RaZvmFtDuHeU0i5AFD_7yKfZsX9LCQ/exec",
+      timeout: 10000, // 10 seconds
+      maxRetries: 2
+    };
 
     // State management
     const appState = {
@@ -418,14 +419,27 @@
           appState.productPrice = Number(product["Product Price"]) || 0;
           appState.productDiscount = Number(product["Product Discount"]) || 0;
           
+          // if (product["Product Size"]) {
+          //   const sizes = product["Product Size"].split("-").map(s => s.trim());
+          //   elements.sizeSelect.innerHTML = sizes.map(size => 
+          //     `<option value="${size}">${size}</option>`
+          //   ).join("");
+          //   elements.sizeContainer.classList.remove("d-none");
+          //   elements.qtyContainer.classList.remove("d-none");
+          // }
           if (product["Product Size"]) {
-            const sizes = product["Product Size"].split("-").map(s => s.trim());
-            elements.sizeSelect.innerHTML = sizes.map(size => 
-              `<option value="${size}">${size}</option>`
-            ).join("");
-            elements.sizeContainer.classList.remove("d-none");
-            elements.qtyContainer.classList.remove("d-none");
-          }
+    const sizes = product["Product Size"].split("-").map(s => {
+        // Remove bracket numbers like [1], [6], [10] etc.
+        const sizeName = s.trim().replace(/\[\d+\]/g, '').trim();
+        return sizeName;
+    });
+    
+    elements.sizeSelect.innerHTML = sizes.map(size => 
+        `<option value="${size}">${size}</option>`
+    ).join("");
+    elements.sizeContainer.classList.remove("d-none");
+    elements.qtyContainer.classList.remove("d-none");
+}
           calculateTotal();
         } else {
           showMessage('Product not found!', 'warning');
@@ -508,14 +522,12 @@
           document.getElementById("city").value = "";
           document.getElementById("address").value = "";
           document.getElementById("pin").value = "";
-          document.getElementById("payment").value = "Cash on Delivery";
         } else {
           const data = JSON.parse(text);
           document.getElementById("name").value = data["Name"] || "";
           document.getElementById("city").value = data["City"] || "";
           document.getElementById("address").value = data["Full Address"] || "";
           document.getElementById("pin").value = data["Pin Code"] || "";
-          document.getElementById("payment").value = data["Payment Methods"] || "Cash on Delivery";
           showMessage('User Found! Please review your details.', 'success');
         }
       } catch (error) {
@@ -620,7 +632,6 @@
           city: elements.citySelect.value,
           address: document.getElementById("address").value,
           pin: document.getElementById("pin").value,
-          payment: document.getElementById("payment").value,
           productId: appState.productId,
           size: elements.sizeSelect.value,
           quantity: elements.quantityInput.value,
