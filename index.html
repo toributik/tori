@@ -10,6 +10,78 @@
   <link href="css/style.css" rel="stylesheet">
   <link href="css/index-style.css" rel="stylesheet">
   <script src="js/script.js"></script>
+  <style>
+    
+/* Enhanced Sort Buttons Scroll Container */
+.sort-buttons-container {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #0d6efd #f8f9fa;
+  border-radius: 10px;
+}
+
+/* Custom scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+.sort-buttons-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.sort-buttons-container::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.sort-buttons-container::-webkit-scrollbar-thumb {
+  background: #0d6efd;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.sort-buttons-container::-webkit-scrollbar-thumb:hover {
+  background: #0b5ed7;
+
+}
+
+/* Firefox scrollbar */
+.sort-buttons-container {
+  scrollbar-width: thin;
+  scrollbar-color: #0d6efd #f8f9fa;
+}
+
+/* Active button styling */
+.btn-outline-primary.active {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+}
+
+/* Button hover effects */
+.btn-outline-primary:hover:not(.active) {
+  background-color: rgba(1, 89, 219, 0.342);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+  color: #15008b;
+}
+
+/* Smooth scrolling behavior */
+.sort-buttons-container {
+  scroll-behavior: smooth;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sort-buttons-container {
+    padding-bottom: 6px;
+  }
+  
+  .sort-buttons-container::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+  </style>
 </head>
 <body>
     <div>
@@ -51,7 +123,7 @@
               </div>
 
               <!-- Sort by -->
-              <div class="mb-2 mb-md-0 me-md-3 w-100 w-md-auto">
+              <!-- <div class="mb-2 mb-md-0 me-md-3 w-100 w-md-auto">
                 <label for="sortSelect" class="form-label mb-1 fw-bold">Sort by:</label>
                 <select class="form-select form-select-sm" id="sortSelect">
                   <option value="random">Random</option>
@@ -61,7 +133,7 @@
                   <option value="price-desc">Price (High to Low)</option>
                   <option value="discount-desc">Discount (High to Low)</option>
                 </select>
-              </div>
+              </div> -->
             </div>
 
             <!-- Right side: Buttons + Results Count -->
@@ -75,6 +147,20 @@
         </div>
       </div>
     </nav>
+<!-- Sort by Buttons with Enhanced Scroll -->
+<div class="mb-3 text-center">
+  <div class="sort-buttons-container">
+    <div class="btn-group" role="group" aria-label="Sort options">
+      <button type="button" class="btn btn-outline-primary btn-sm me-1 mb-1 active" data-sort="random">Random</button>
+      <button type="button" class="btn btn-outline-primary btn-sm me-1 mb-1" data-sort="name-asc">Name (A-Z)</button>
+      <button type="button" class="btn btn-outline-primary btn-sm me-1 mb-1" data-sort="name-desc">Name (Z-A)</button>
+      <button type="button" class="btn btn-outline-primary btn-sm me-1 mb-1" data-sort="price-asc">Price (Low → High)</button>
+      <button type="button" class="btn btn-outline-primary btn-sm me-1 mb-1" data-sort="price-desc">Price (High → Low)</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mb-1" data-sort="discount-desc">Discount (High → Low)</button>
+    </div>
+  </div>
+</div>
+
 
     <!-- Horizontal Scroll Filter Buttons -->
     <div class="mb-1 d-flex justify-content-center">
@@ -107,6 +193,14 @@
       
       <!-- Products Grid -->
       <div id="productContainer" class="row g-2" style="display: none;"></div>
+
+      <!-- Infinite Scroll Loading Indicator -->
+  <div id="loadingIndicator" class="text-center py-3" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading more products...</span>
+    </div>
+    <p class="text-muted mt-2">Loading more products...</p>
+  </div>
       
       <!-- Empty State -->
       <div id="emptyContainer" class="text-center py-5" style="display: none;">
@@ -205,6 +299,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
+
+
+
       // DOM Elements
       const productContainer = document.getElementById("productContainer");
       const loadingContainer = document.getElementById("loadingContainer");
@@ -228,6 +326,11 @@
       let currentSearch = "";
       let isInitialLoad = true;
       let isFilterApplied = false;
+
+      // Infinite scroll variables
+      let productsPerLoad = 48;
+      let currentlyDisplayedCount = 0;
+      let allFilteredProducts = [];
 
       // Calculate discounted price
       function calculateDiscountedPrice(price, discount) {
@@ -357,7 +460,7 @@ function createPriceDisplay(product) {
             : "";
 
           const productIdBadge = p["Product ID"]
-            ? `<div class="product-id-badge">ID: ${p["Product ID"]}</div>`
+            ? `<div class="product-id-badge d-none">ID: ${p["Product ID"]}</div>`
             : "";
 
           const priceDisplay = createPriceDisplay(p);
@@ -373,7 +476,10 @@ function createPriceDisplay(product) {
                   <img src="${p['Product Image']}" class="card-img-top" alt="${p['Product Name']}" 
                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg='">
                   <div class="card-body d-flex flex-column">
-                    <span><span class="Product-Name"><strong>${p['Product Name']}</strong></span>
+                    <div class="product-name mb-1">
+                <span class="Product-Name"><strong>${p['Product Name']}</strong></span>
+              </div>
+                    <span>
                     ${priceDisplay}</span>
                     <div class="mt-auto">
                       <a href="order.html?productId=${p['Product ID']}" class="btn btn-order w-100">Order Now</a>
@@ -393,157 +499,127 @@ function createPriceDisplay(product) {
         return String(value).toLowerCase();
       }
 
-      // Get limited products per category (10 products max per category)
-      function getLimitedProductsByCategory(products, limit = 10) {
-        const categories = {};
-        const limitedProducts = [];
-        
-        // Group products by category
-        products.forEach(product => {
-          const category = product['Product Type'] || 'Uncategorized';
-          if (!categories[category]) {
-            categories[category] = [];
-          }
-          categories[category].push(product);
-        });
-        
-        // Take up to limit products from each category
-        Object.values(categories).forEach(categoryProducts => {
-          limitedProducts.push(...categoryProducts.slice(0, limit));
-        });
-        
-        return limitedProducts;
-      }
 
-      // Apply filters, search and sorting
-      function applyFiltersAndSort() {
-        // Check if any filter is applied
-        const hasActiveFilter = currentFilter !== 'all' || currentSearch.trim() !== '' || currentSort !== 'random';
-        
-        // Update filter state
-        if (hasActiveFilter) {
-          isFilterApplied = true;
-          newProductsContainer.style.display = 'none';
-        } else {
-          isFilterApplied = false;
-        }
 
-        // Filter products by type and availability
-        if (currentFilter === 'all') {
-          filteredProducts = allProducts.filter(p => 
-            (p['Product Display'] || "").toLowerCase() === "yes"
-          );
-        } else if (currentFilter === 'unavailable') {
-          filteredProducts = allProducts.filter(p => 
-            (p['Product Display'] || "").toLowerCase() === "no"
-          );
-        } else {
-          filteredProducts = allProducts.filter(p => 
-            p['Product Type'] === currentFilter && 
-            (p['Product Display'] || "").toLowerCase() === "yes"
-          );
-        }
-        
-        // Apply search filter
-        if (currentSearch.trim() !== '') {
-          const searchTerm = currentSearch.toLowerCase().trim();
-          filteredProducts = filteredProducts.filter(p => {
-            const productName = safeToString(p['Product Name']);
-            const productId = safeToString(p['Product ID']);
-            
-            return productName.includes(searchTerm) || productId.includes(searchTerm);
-          });
-        }
-        
-        // For initial load with no filters, show limited products
-        if (isInitialLoad && !hasActiveFilter) {
-          filteredProducts = getLimitedProductsByCategory(filteredProducts, 10);
-        }
-        
-        // Sort products
-        sortProducts();
-        
-        // Update results count
-        updateResultsCount();
-        
-        // Render products
-        renderProducts();
+// Apply filters, search and sorting
+function applyFiltersAndSort() {
+  // Check if any filter is applied
+  const hasActiveFilter = currentFilter !== 'all' || currentSearch.trim() !== '' || currentSort !== 'random';
+  
+  // Update filter state
+  if (hasActiveFilter) {
+    isFilterApplied = true;
+    newProductsContainer.style.display = 'none';
+  } else {
+    isFilterApplied = false;
+  }
 
-        // Reset initial load flag after first render
-        if (isInitialLoad) {
-          isInitialLoad = false;
-        }
-      }
+  // Filter products by type and availability
+  if (currentFilter === 'all') {
+    allFilteredProducts = allProducts.filter(p => 
+      (p['Product Display'] || "").toLowerCase() === "yes"
+    );
+  } else if (currentFilter === 'unavailable') {
+    allFilteredProducts = allProducts.filter(p => 
+      (p['Product Display'] || "").toLowerCase() === "no"
+    );
+  } else {
+    allFilteredProducts = allProducts.filter(p => 
+      p['Product Type'] === currentFilter && 
+      (p['Product Display'] || "").toLowerCase() === "yes"
+    );
+  }
+  
+  // Apply search filter
+  if (currentSearch.trim() !== '') {
+    const searchTerm = currentSearch.toLowerCase().trim();
+    allFilteredProducts = allFilteredProducts.filter(p => {
+      const productName = safeToString(p['Product Name']);
+      const productId = safeToString(p['Product ID']);
+      
+      return productName.includes(searchTerm) || productId.includes(searchTerm);
+    });
+  }
+  
+  // Sort products
+  sortProducts(allFilteredProducts);
+  
+  // Reset display counter and load initial batch
+  currentlyDisplayedCount = 0;
+  loadMoreProducts();
+  
+  // Update results count
+  updateResultsCount();
+
+  // Reset initial load flag after first render
+  if (isInitialLoad) {
+    isInitialLoad = false;
+  }
+}
 
       // Sort products based on current sort option
-      function sortProducts() {
+      function sortProducts(productsArray) {
         switch(currentSort) {
           case 'random':
             // Shuffle array randomly
-            for (let i = filteredProducts.length - 1; i > 0; i--) {
+            for (let i = productsArray.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
-              [filteredProducts[i], filteredProducts[j]] = [filteredProducts[j], filteredProducts[i]];
+              [productsArray[i], productsArray[j]] = [productsArray[j], productsArray[i]];
             }
             break;
           case 'name-asc':
-            filteredProducts.sort((a, b) => safeToString(a['Product Name']).localeCompare(safeToString(b['Product Name'])));
+            productsArray.sort((a, b) => safeToString(a['Product Name']).localeCompare(safeToString(b['Product Name'])));
             break;
           case 'name-desc':
-            filteredProducts.sort((a, b) => safeToString(b['Product Name']).localeCompare(safeToString(a['Product Name'])));
+            productsArray.sort((a, b) => safeToString(b['Product Name']).localeCompare(safeToString(a['Product Name'])));
             break;
           case 'price-asc':
-            filteredProducts.sort((a, b) => (parseFloat(a['Product Price']) || 0) - (parseFloat(b['Product Price']) || 0));
+            productsArray.sort((a, b) => (parseFloat(a['Product Price']) || 0) - (parseFloat(b['Product Price']) || 0));
             break;
           case 'price-desc':
-            filteredProducts.sort((a, b) => (parseFloat(b['Product Price']) || 0) - (parseFloat(a['Product Price']) || 0));
+            productsArray.sort((a, b) => (parseFloat(b['Product Price']) || 0) - (parseFloat(a['Product Price']) || 0));
             break;
           case 'discount-desc':
-            filteredProducts.sort((a, b) => (parseFloat(b['Product Discount']) || 0) - (parseFloat(a['Product Discount']) || 0));
+            productsArray.sort((a, b) => (parseFloat(b['Product Discount']) || 0) - (parseFloat(a['Product Discount']) || 0));
             break;
         }
+        return productsArray;
       }
 
-      // Update results count
-      function updateResultsCount() {
-        const totalCount = allProducts.length;
-        const filteredCount = filteredProducts.length;
-        
-        let countText = `Showing ${filteredCount} of ${totalCount}`;
-        
-        if (currentFilter !== 'all') {
-          countText += ` (filtered by: ${currentFilter})`;
-        }
-        
-        if (currentSearch.trim() !== '') {
-          countText += ` (search: "${currentSearch}")`;
-        }
 
-        if (isInitialLoad && !isFilterApplied) {
-         // countText += ' - Showing 10 products per category';
-        }
-        
-        resultsCount.textContent = countText;
-      }
-
-      // Render products to the grid without type headings
-      // Render products to the grid without type headings
-function renderProducts() {
-  productContainer.innerHTML = "";
-
-  if (filteredProducts.length === 0) {
-    productContainer.style.display = 'none';
-    emptyContainer.style.display = 'block';
-    return;
+      // Load more products for infinite scroll
+function loadMoreProducts() {
+  const productsToDisplay = allFilteredProducts.slice(currentlyDisplayedCount, currentlyDisplayedCount + productsPerLoad);
+  
+  if (currentlyDisplayedCount === 0) {
+    // First load - replace content
+    filteredProducts = productsToDisplay;
+    renderProducts();
+  } else {
+    // Subsequent loads - append content
+    filteredProducts = filteredProducts.concat(productsToDisplay);
+    appendProducts(productsToDisplay);
   }
+  
+  currentlyDisplayedCount += productsToDisplay.length;
+  
+  // Show/hide loading indicator
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  if (loadingIndicator) {
+    loadingIndicator.style.display = currentlyDisplayedCount < allFilteredProducts.length ? 'block' : 'none';
+  }
+  
+  // Update results count
+  updateResultsCount();
+}
 
-  productContainer.style.display = 'block';
-  emptyContainer.style.display = 'none';
+// Append products to existing grid
+function appendProducts(products) {
+  if (products.length === 0) return;
 
-  // Create a single row for all products (no type headings)
-  const row = document.createElement("div");
-  row.className = "row g-2";
-
-  filteredProducts.forEach(p => {
+  const row = productContainer.querySelector('.row') || createNewRow();
+  
+  products.forEach(p => {
     const isAvailable = (p["Product Display"] || "").toLowerCase() === "yes";
 
     const discountBadge = p["Product Discount"] && p["Product Discount"] > 0 && isAvailable
@@ -551,7 +627,7 @@ function renderProducts() {
       : "";
 
     const productIdBadge = p["Product ID"]
-      ? `<div class="product-id-badge">ID: ${p["Product ID"]}</div>`
+      ? `<div class="product-id-badge d-none">ID: ${p["Product ID"]}</div>`
       : "";
 
     const priceDisplay = isAvailable ? createPriceDisplay(p) : "";
@@ -591,7 +667,7 @@ function renderProducts() {
                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg='">
             
             <div class="card-body d-flex flex-column">
-              <div class="product-name mb-2">
+              <div class="product-name mb-1">
                 <strong>${productName}</strong>
               </div>
               <div class="price-container mb-2">
@@ -607,8 +683,57 @@ function renderProducts() {
     `;
     row.insertAdjacentHTML("beforeend", card);
   });
+}
 
+// Create new row for products
+function createNewRow() {
+  const row = document.createElement("div");
+  row.className = "row g-2";
   productContainer.appendChild(row);
+  return row;
+}
+      // Update results count
+// Update results count
+function updateResultsCount() {
+  const totalCount = allProducts.length;
+  const filteredCount = allFilteredProducts.length;
+  const displayedCount = filteredProducts.length;
+  
+  let countText = `Showing ${displayedCount} of ${filteredCount} products`;
+  
+  if (currentFilter !== 'all') {
+    countText += ` (filtered by: ${currentFilter})`;
+  }
+  
+  if (currentSearch.trim() !== '') {
+    countText += ` (search: "${currentSearch}")`;
+  }
+
+  if (displayedCount < filteredCount) {
+    countText += ` - Scroll down to load more`;
+  }
+  
+  resultsCount.textContent = countText;
+}
+// Render products to the grid
+function renderProducts() {
+  if (currentlyDisplayedCount === 0) {
+    productContainer.innerHTML = "";
+  }
+
+  if (filteredProducts.length === 0) {
+    productContainer.style.display = 'none';
+    emptyContainer.style.display = 'block';
+    return;
+  }
+
+  productContainer.style.display = 'block';
+  emptyContainer.style.display = 'none';
+
+  if (currentlyDisplayedCount === 0) {
+    createNewRow();
+    appendProducts(filteredProducts);
+  }
 }
       // Load products from API
       async function loadProducts() {
@@ -673,13 +798,24 @@ function renderProducts() {
         applyFiltersAndSort();
       });
       
-      // Sort change event
-      sortSelect.addEventListener('change', function() {
-        currentSort = this.value;
-        isFilterApplied = true;
-        applyFiltersAndSort();
-      });
-      
+// Sort button click events
+document.querySelectorAll('[data-sort]').forEach(button => {
+  button.addEventListener('click', function() {
+    // Remove active class from all sort buttons
+    document.querySelectorAll('[data-sort]').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    this.classList.add('active');
+    
+    // Update current sort and apply filters
+    currentSort = this.dataset.sort;
+    isFilterApplied = true;
+    applyFiltersAndSort();
+  });
+});
+          
       // Search input event with debouncing
       let searchTimeout;
       searchInput.addEventListener('input', function() {
@@ -708,6 +844,20 @@ function renderProducts() {
 
         return diffDays <= days;
       }
+
+
+
+      // Infinite scroll event listener
+window.addEventListener('scroll', () => {
+  if (currentlyDisplayedCount >= allFilteredProducts.length) return;
+  
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  
+  // Load more when user is 100px from bottom
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
+    loadMoreProducts();
+  }
+});
     </script>
     
     <script>

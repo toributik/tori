@@ -200,7 +200,7 @@
     width: 70px;
     height: 90px;
     background-color: #004d50;
-    border-radius: 50%;
+    border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     margin-right: 10px;
     cursor: pointer;
@@ -270,12 +270,13 @@
 }
 
 .type-btn-text {
-    color: white;
+    color: rgb(255, 255, 255);
     font-size: 0.75rem;
     font-weight: 500;
     text-align: center;
     margin: 0;
     line-height: 1.2;
+    padding: 3px;
 }
 
 /* Front side: image top, text bottom */
@@ -360,13 +361,13 @@
 
 .new-badge {
   position: absolute;
-  bottom: 120px;
-  right: 5px;
+  bottom: 0px;
+  right: 0px;
   background-color: #ff3c3c;
   color: #fff;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-top: 3px solid rgb(214, 182, 0);
-  font-size: 9px;
+  font-size: 7px;
   font-weight: bold;
   border-radius: 4px;
   z-index: 10;
@@ -375,7 +376,7 @@
 
 @keyframes pulse {
   0% { transform: scale(1); box-shadow: 0 0 0px #ff3c3c; }
-  50% { transform: scale(1.1); box-shadow: 0 0 8px #ff3c3c; }
+  50% { transform: scale(1.1); box-shadow: 0 0 3px #ff3c3c; }
   100% { transform: scale(1); box-shadow: 0 0 0px #ff3c3c; }
 }
 
@@ -383,7 +384,7 @@
 .logo-card-img{
   position: absolute;
   /* transform: rotate(-45deg); */
-  bottom: 150px;
+  bottom: 20%;
   right: 5px;
   z-index: 10;
   width: 30px;
@@ -496,8 +497,8 @@
 /* Floating Share Button */
 .btn-share-floating {
   position: absolute;
-  bottom: 130px;
-  left: 10px;
+  top: 5px;
+  right: 5px;
   width: 36px;
   height: 36px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -511,6 +512,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   padding: 0;
+  border: 1px solid wheat;
 }
 
 .btn-share-floating:hover {
@@ -533,8 +535,7 @@
   .btn-share-floating {
     width: 28px;
     height: 28px;
-    bottom: 135px;
-    left: 6px;
+
   }
   
   .btn-share-floating i {
@@ -546,8 +547,6 @@
   .btn-share-floating {
     width: 28px;
     height: 28px;
-    bottom: 130px;
-    left: 6px;
   }
   
   .btn-share-floating i {
@@ -624,4 +623,5 @@
   color: white;
   border-radius: 8px 8px 0 0;
 }
+
 
